@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String    @id @default(uuid())
+  email            String    @unique
+  passwordHash     String
+  displayName      String?
+  role             String    @default("user")    // 'user' | 'admin'
+  status           String    @default("active")  // 'active' | 'inactive'
+  timezone         String    @default("Asia/Ho_Chi_Minh")
+  telegramChatId   String?
+  telegramSettings Json      @default("{\"notify_success\":true,\"notify_fail\":true,\"daily_report\":true,\"weekly_report\":true,\"report_time\":\"22:00\"}")
+  lastLoginAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  channels    Channel[]
+  posts       Post[]
+  resetTokens PasswordResetToken[]
+
+  @@index([email])
+  @@index([role])
+  @@index([status])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+}
+
+model Channel {
+  id             String    @id @default(uuid())
+  userId         String
+  name           String
+  platform       String    // 'facebook'|'instagram'|'linkedin'|'youtube'|'threads'|'x'
+  connectionType String    // 'webhook'|'api'|'oauth'
+  webhookUrl     String?
+  credentials    Json?     // AES-256-GCM encrypted at app layer
+  status         String    @default("active") // 'active'|'expired'|'inactive'
+  lastTestedAt   DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postChannels PostChannel[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@index([status])
+  @@index([platform])
+}
+
+model Post {
+  id          String    @id @default(uuid())
+  userId      String
+  content     String    @default("")
+  mediaUrls   Json      @default("[]") // [{key, url, type, size, name}]
+  scheduledAt DateTime?
+  status      String    @default("draft") // 'draft'|'scheduled'|'processing'|'published'|'failed'
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postChannels PostChannel[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([scheduledAt])
+}
+
+// Junction table: 1 post × N channels — tracks per-channel publish status
+model PostChannel {
+  id            String    @id @default(uuid())
+  postId        String
+  channelId     String
+  status        String    @default("pending") // 'pending'|'processing'|'published'|'failed'
+  callbackToken String?   @unique             // random token for Make.com callback verification
+  publishedUrl  String?
+  errorMessage  String?
+  retryCount    Int       @default(0)
+  lockedAt      DateTime?                     // cron lock — prevents double-processing
+  publishedAt   DateTime?
+  timeline      Json      @default("[]")      // [{event, at, note}] audit trail
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  post    Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  channel Channel @relation(fields: [channelId], references: [id], onDelete: Restrict)
+
+  @@unique([postId, channelId])
+  @@index([postId])
+  @@index([channelId])
+  @@index([status])
+  @@index([callbackToken])
+}
