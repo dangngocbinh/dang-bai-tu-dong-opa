@@ -563,7 +563,7 @@ Mỗi User Story có ID theo format `{PREFIX}-NNN` (vd: `AUTH-001`, `POST-002`).
 
 ---
 
-#### Feature 5: TEL-001 ⏳ Thông báo Telegram
+#### Feature 5: TEL-001 ✅ Thông báo Telegram
 
 **Story:** Là dân marketing, tôi muốn nhận thông báo qua Telegram ngay khi bài đăng xong (thành công hay thất bại) và nhận báo cáo hàng ngày, để tôi kiểm soát mà không cần mở app.
 
@@ -574,7 +574,7 @@ Mỗi User Story có ID theo format `{PREFIX}-NNN` (vd: `AUTH-001`, `POST-002`).
 - ✅ Tắt/bật thông báo được trong settings
 - ❌ Chưa cần thông báo qua email hoặc Slack
 
-**Story phụ — TEL-002 ⏳ Kết nối Telegram 1 chạm:**
+**Story phụ — TEL-002 ✅ Kết nối Telegram 1 chạm:**
 *Là user vào Settings, tôi muốn bấm 1 nút để tự động mở bot Telegram của OPA, nhấn Start là kết nối xong ngay — không cần tìm chat ID hay copy-paste gì cả.*
 
 - ✅ Trang Settings (hoặc trang Kết nối Telegram) có nút "Kết nối Telegram" nổi bật
@@ -587,7 +587,7 @@ Mỗi User Story có ID theo format `{PREFIX}-NNN` (vd: `AUTH-001`, `POST-002`).
 - ✅ Nếu user đã kết nối → bot gửi tin "Bạn đã kết nối rồi — không cần làm lại" thay vì tạo kết nối trùng
 - ❌ Chưa cần hỗ trợ kết nối nhiều tài khoản Telegram cho 1 user
 
-**Story phụ — TEL-003 ⏳ Chọn loại thông báo sau khi kết nối:**
+**Story phụ — TEL-003 ✅ Chọn loại thông báo sau khi kết nối:**
 *Là user vừa kết nối Telegram thành công, tôi muốn chọn ngay loại thông báo muốn nhận — đăng ký nhận ngay, báo cáo hàng ngày, hoặc hàng tuần — để không bị spam và nhận đúng thứ mình cần.*
 
 - ✅ Ngay sau khi bot gửi tin xác nhận kết nối, bot tiếp tục gửi 1 tin với 3 nút lựa chọn nhanh:
@@ -599,14 +599,14 @@ Mỗi User Story có ID theo format `{PREFIX}-NNN` (vd: `AUTH-001`, `POST-002`).
 - ✅ Nếu user không chọn gì trong 5 phút → bot gửi nhắc nhở 1 lần; sau đó tự bật mặc định cả 3
 - ✅ Mặc định khi chưa chọn: cả 3 đều bật
 
-**Story phụ — TEL-004 ⏳ Test thông báo Telegram:**
+**Story phụ — TEL-004 ✅ Test thông báo Telegram:**
 *Là user vừa kết nối xong, tôi muốn bấm test để chắc chắn bot có thể nhắn cho mình, thay vì chờ tới khi đăng bài thật mới biết lỗi.*
 
 - ✅ Button "Gửi test message" trong Settings sau khi đã kết nối
 - ✅ Click → Bot gửi tin "🔔 Test thành công từ OPA — mọi thứ đang hoạt động tốt ✅"
 - ✅ Nếu bot không gửi được → hiện hướng dẫn fix (vd: user đã block bot, hoặc chat_id hết hạn)
 
-**Story phụ — TEL-005 ⏳ Tùy chọn loại thông báo (trong Settings):**
+**Story phụ — TEL-005 ✅ Tùy chọn loại thông báo (trong Settings):**
 *Là user không muốn bị spam, tôi muốn vào Settings để chỉnh lại loại thông báo bất kỳ lúc nào.*
 
 - ✅ Settings > Notifications có các toggle:
@@ -618,13 +618,13 @@ Mỗi User Story có ID theo format `{PREFIX}-NNN` (vd: `AUTH-001`, `POST-002`).
 - ✅ Mặc định: cả 4 đều bật
 - ✅ Thay đổi áp dụng từ lần gửi tiếp theo (không retroactive)
 
-**Story phụ — TEL-006 ⏳ Đổi giờ nhận báo cáo hàng ngày:**
+**Story phụ — TEL-006 ✅ Đổi giờ nhận báo cáo hàng ngày:**
 *Là user ở múi giờ khác hoặc muốn nhận báo cáo lúc khác, tôi muốn đổi giờ gửi báo cáo tổng hợp.*
 
 - ✅ Input time picker trong settings — chọn giờ (mặc định 22:00 Asia/Ho_Chi_Minh)
 - ✅ Áp dụng cho lần gửi tiếp theo
 
-**Empty state — TEL-007 ⏳ User chưa có bài trong ngày:**
+**Empty state — TEL-007 ✅ User chưa có bài trong ngày:**
 - ✅ Báo cáo tổng hợp hôm đó không gửi (không spam "0 bài đăng hôm nay")
 - ✅ Chỉ gửi khi có ít nhất 1 bài được xử lý trong ngày
 
