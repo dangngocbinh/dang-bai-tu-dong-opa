@@ -141,7 +141,7 @@ Mỗi User Story có ID theo format `{PREFIX}-NNN` (vd: `AUTH-001`, `POST-002`).
 
 ---
 
-#### Feature 0: AUTH-001 ⏳ Đăng ký & Đăng nhập
+#### Feature 0: AUTH-001 ✅ Đăng ký & Đăng nhập
 
 **Story:** Là người dùng mới, tôi muốn tạo tài khoản và đăng nhập vào OPA, để hệ thống nhận ra tôi là ai và lưu bài đăng, kênh kết nối riêng cho tôi.
 
@@ -156,7 +156,7 @@ Mỗi User Story có ID theo format `{PREFIX}-NNN` (vd: `AUTH-001`, `POST-002`).
 - ❌ Chưa cần 2FA
 - ❌ Chưa cần magic link
 
-**Story phụ — AUTH-002 ⏳ Quên mật khẩu:**
+**Story phụ — AUTH-002 ✅ Quên mật khẩu:**
 *Là user không nhớ mật khẩu, tôi muốn đặt lại mật khẩu qua email để lấy lại quyền truy cập.*
 
 - ✅ Click "Quên mật khẩu" trên trang login → nhập email → OPA gửi link reset (token ngắn hạn 15 phút)
@@ -164,21 +164,21 @@ Mỗi User Story có ID theo format `{PREFIX}-NNN` (vd: `AUTH-001`, `POST-002`).
 - ✅ Nếu email không tồn tại trong hệ thống → vẫn hiện "Đã gửi email" (tránh enumeration attack)
 - ✅ Link cũ tự invalidate sau khi đã dùng hoặc sau khi request link mới
 
-**Story phụ — AUTH-003 ⏳ Đổi mật khẩu:**
+**Story phụ — AUTH-003 ⚠️ Đổi mật khẩu:**
 *Là user đang đăng nhập, tôi muốn đổi password ngay trong Settings để bảo mật tài khoản.*
 
 - ✅ Vào Settings → tab Security → nhập current password + new password + confirm
 - ✅ Sau khi đổi thành công → logout tất cả session khác (chỉ giữ session hiện tại)
 - ✅ Gửi email thông báo "Mật khẩu đã được đổi lúc X" để user biết
 
-**Empty state — AUTH-004 ⏳ User vừa đăng nhập lần đầu:**
+**Empty state — AUTH-004 ⚠️ User vừa đăng nhập lần đầu:**
 - ✅ Dashboard hiển thị welcome screen với 3 bước setup: "1. Kết nối kênh → 2. Soạn bài → 3. Hẹn giờ"
 - ✅ Mỗi bước có progress indicator (0/3, 1/3...) — check xong thì tick xanh
 - ✅ Có nút "Bỏ qua hướng dẫn" — chuyển về dashboard rỗng bình thường
 
 ---
 
-#### Feature 4: CHN-001 ⏳ Quản lý Kênh (Channels)
+#### Feature 4: CHN-001 ✅ Quản lý Kênh (Channels)
 
 > **Lý do đặt trước Feature 1:** Soạn bài bắt buộc phải chọn Kênh → phải có ít nhất 1 Kênh trước khi dùng Feature 1.
 
@@ -218,7 +218,7 @@ Mỗi User Story có ID theo format `{PREFIX}-NNN` (vd: `AUTH-001`, `POST-002`).
 - ❌ TikTok chưa hỗ trợ
 - ❌ Chưa cần chia sẻ Kênh giữa nhiều user (multi-tenant chỉ 1 user/1 Kênh)
 
-**Story phụ — CHN-002 ⏳ Test kết nối Kênh:**
+**Story phụ — CHN-002 ✅ Test kết nối Kênh:**
 *Là user vừa thêm Kênh, tôi muốn test xem credential/webhook hoạt động không, trước khi lên lịch bài thật.*
 
 - ✅ Nút "Test kết nối" bên cạnh từng Kênh trong list
@@ -226,7 +226,7 @@ Mỗi User Story có ID theo format `{PREFIX}-NNN` (vd: `AUTH-001`, `POST-002`).
 - ✅ Với API: gọi endpoint `/profile` hoặc `/me` → xác nhận credential hợp lệ
 - ✅ Hiển thị kết quả test rõ ràng (thời gian phản hồi + lý do nếu fail)
 
-**Story phụ — CHN-003 ⏳ Reconnect Kênh khi token hết hạn:**
+**Story phụ — CHN-003 ⚠️ Reconnect Kênh khi token hết hạn:**
 *Là user nhận cảnh báo "Kênh Shop Cưng IG hết hạn", tôi muốn kết nối lại nhanh chóng ngay tại cảnh báo, không phải đi tìm.*
 
 - ✅ Banner trên dashboard: "Kênh {tên Kênh} hết hạn — [Kết nối lại]"
@@ -247,14 +247,14 @@ Mỗi User Story có ID theo format `{PREFIX}-NNN` (vd: `AUTH-001`, `POST-002`).
 - ✅ Filter list Kênh theo label
 - ✅ Khi soạn bài có thể quick-select toàn bộ Kênh trong 1 label
 
-**Empty state — CHN-006 ⏳ Chưa có Kênh nào:**
+**Empty state — CHN-006 ✅ Chưa có Kênh nào:**
 - ✅ Trang `/channels` hiện illustration + text lớn "Bạn chưa có Kênh nào — Tạo Kênh đầu tiên"
 - ✅ CTA chính: button "+ Thêm Kênh"
 - ✅ Kèm 3 case gợi ý đặt tên: "Shop Cưng", "Kênh cá nhân của tôi", "Giải Trí Thể Thao" để user hình dung
 
 ---
 
-#### Feature 1: POST-001 ⏳ Soạn bài
+#### Feature 1: POST-001 ✅ Soạn bài
 
 **Story:** Là content creator, tôi muốn soạn nội dung bài đăng gồm text, ảnh và video ngay trên OPA và **chọn các Kênh cụ thể sẽ đăng** (vd: "Shop Cưng" + "Shop Cưng IG" nhưng không đăng lên "Giải Trí Thể Thao"), để không phải soạn riêng trên từng nơi và không bị lẫn lộn giữa các thương hiệu.
 
@@ -272,14 +272,14 @@ Mỗi User Story có ID theo format `{PREFIX}-NNN` (vd: `AUTH-001`, `POST-002`).
 - ❌ Chưa cần chỉnh ảnh / cắt video trong app
 - ❌ TikTok chưa hỗ trợ
 
-**Story phụ — POST-002 ⏳ Tự động lưu draft:**
+**Story phụ — POST-002 ✅ Tự động lưu draft:**
 *Là content creator đang soạn dở bài, tôi muốn app tự lưu nội dung, để không mất dữ liệu khi bị ngắt mạng hoặc đóng tab nhầm.*
 
 - ✅ Editor auto-save mỗi 10 giây khi có thay đổi
 - ✅ Hiển thị indicator "Đã lưu" hoặc "Đang lưu..." ở góc editor
 - ✅ Khi mở lại bài dở → khôi phục lại đúng nội dung cuối cùng đã auto-save
 
-**Story phụ — POST-003 ⏳ Preview bài trước khi lưu:**
+**Story phụ — POST-003 ⚠️ Preview bài trước khi lưu:**
 *Là content creator, tôi muốn xem trước bài sẽ hiển thị thế nào trên từng Kênh đã chọn, để chỉnh caption/ảnh cho phù hợp trước khi đăng.*
 
 - ✅ Panel preview show cạnh editor — đổi tab giữa các Kênh đã chọn
@@ -287,7 +287,7 @@ Mỗi User Story có ID theo format `{PREFIX}-NNN` (vd: `AUTH-001`, `POST-002`).
 - ✅ Cảnh báo khi caption vượt giới hạn ký tự của nền tảng Kênh đó (X.com: 280, Threads: 500, LinkedIn: 3000)
 - ✅ Hiện cảnh báo khi upload ảnh/video sai format (vd: chọn Kênh YouTube nhưng không có video)
 
-**Story phụ — POST-004 ⏳ Duplicate bài:**
+**Story phụ — POST-004 ⚠️ Duplicate bài:**
 *Là content creator, tôi muốn nhân đôi một bài cũ để chỉnh lại và đăng cho campaign tương tự, không cần soạn lại từ đầu.*
 
 - ✅ Ở list bài hoặc detail bài → nút "Duplicate" → tạo bản sao ở trạng thái `draft`
@@ -295,7 +295,7 @@ Mỗi User Story có ID theo format `{PREFIX}-NNN` (vd: `AUTH-001`, `POST-002`).
 - ✅ Tên bài gốc thêm suffix "(Copy)" để phân biệt
 - ✅ Nếu Kênh đã chọn ở bài gốc đã bị xóa/tạm tắt → tự động bỏ tick Kênh đó + hiện cảnh báo
 
-**Empty state — POST-005 ⏳ User chưa có bài nào:**
+**Empty state — POST-005 ⚠️ User chưa có bài nào:**
 - ✅ Trang danh sách hiện illustration + CTA "Soạn bài đầu tiên của bạn"
 - ✅ Có 2 link phụ: "Xem hướng dẫn" và "Tạo Kênh trước" (nếu chưa có Kênh)
 - ✅ Nếu user chưa có Kênh nào → disable nút soạn bài, hiện tooltip "Tạo ít nhất 1 Kênh trước"
@@ -317,7 +317,7 @@ Mỗi User Story có ID theo format `{PREFIX}-NNN` (vd: `AUTH-001`, `POST-002`).
 - ❌ Chưa cần đăng lặp lại tự động (recurring post)
 - ❌ Chưa cần bulk schedule từ file CSV
 
-**Story phụ — SCH-002 ⏳ Publish now (Đăng ngay):**
+**Story phụ — SCH-002 ⚠️ Publish now (Đăng ngay):**
 *Là content creator đang muốn post gấp, tôi muốn bỏ qua hẹn giờ để đăng liền lập tức.*
 
 - ✅ Nút "Đăng ngay" bên cạnh "Hẹn giờ" trong editor
@@ -383,7 +383,7 @@ Mỗi User Story có ID theo format `{PREFIX}-NNN` (vd: `AUTH-001`, `POST-002`).
 
 ---
 
-#### Feature 3: TRK-001 ⏳ Theo dõi & quản lý bài đăng
+#### Feature 3: TRK-001 ⚠️ Theo dõi & quản lý bài đăng
 
 **Story:** Là content creator, tôi muốn biết bài nào đã đăng thành công, bài nào lỗi và link kết quả ở đâu, để tôi kiểm soát được hoạt động đăng bài mà không cần vào từng nền tảng kiểm tra.
 
@@ -403,14 +403,14 @@ Mỗi User Story có ID theo format `{PREFIX}-NNN` (vd: `AUTH-001`, `POST-002`).
 - ✅ Mỗi step có timestamp + ghi chú (vd: "Đã gọi Make.com webhook lúc 20:00:03")
 - ✅ Với bài failed: hiện error message đầy đủ (HTTP status + response body rút gọn)
 
-**Story phụ — TRK-003 ⏳ Retry bài đăng lỗi:**
+**Story phụ — TRK-003 ⚠️ Retry bài đăng lỗi:**
 *Là content creator thấy bài bị lỗi do token hết hạn, tôi muốn retry lại sau khi đã fix credential, thay vì soạn lại từ đầu.*
 
 - ✅ Ở bài `failed` → button "Thử đăng lại" (enable khi user đã cập nhật credential/webhook)
 - ✅ Click retry → bài quay về trạng thái `processing`, gọi lại luồng đăng
 - ✅ Nếu retry thất bại 3 lần liên tiếp → disable button, yêu cầu user kiểm tra kết nối
 
-**Story phụ — TRK-004 ⏳ Filter nâng cao:**
+**Story phụ — TRK-004 ⚠️ Filter nâng cao:**
 *Là content creator có nhiều bài và nhiều Kênh, tôi muốn filter/search để nhanh tìm bài cần quản lý.*
 
 - ✅ Filter: trạng thái, nền tảng, **Kênh cụ thể (multi-select)**, khoảng ngày (today/7d/30d/custom)
@@ -418,7 +418,7 @@ Mỗi User Story có ID theo format `{PREFIX}-NNN` (vd: `AUTH-001`, `POST-002`).
 - ✅ Sort theo: ngày tạo, giờ đăng, trạng thái
 - ✅ Filter URL có query param để bookmark/share được (vd: `/posts?channels=shop-cung,giai-tri&status=failed`)
 
-**Empty state — TRK-005 ⏳ Chưa có bài nào:**
+**Empty state — TRK-005 ✅ Chưa có bài nào:**
 - ✅ Illustration + text "Bạn chưa có bài đăng nào" + CTA "Soạn bài đầu tiên"
 - ✅ Link phụ: "Xem demo bài đăng mẫu" để user hình dung flow
 
@@ -428,7 +428,7 @@ Mỗi User Story có ID theo format `{PREFIX}-NNN` (vd: `AUTH-001`, `POST-002`).
 
 ---
 
-#### Feature A1: SUP-001 ⏳ Setup Admin
+#### Feature A1: SUP-001 ✅ Setup Admin
 
 **Story:** Là người khởi tạo hệ thống, tôi muốn cấu hình tài khoản admin đầu tiên ngay lần truy cập đầu tiên, để hệ thống có người quản lý trước khi cho phép user khác đăng ký.
 
@@ -447,7 +447,7 @@ Mỗi User Story có ID theo format `{PREFIX}-NNN` (vd: `AUTH-001`, `POST-002`).
 - ❌ Chưa cần phân quyền chi tiết theo từng tính năng (chỉ có 2 role: `user` và `admin`)
 - ❌ Chưa cần audit log hành động của admin
 
-**Story phụ — SUP-002 ⏳ First-run UI khác biệt:**
+**Story phụ — SUP-002 ✅ First-run UI khác biệt:**
 *Là người cài đặt server lần đầu, tôi muốn trang setup trông chuyên nghiệp và đủ thông tin, để tự tin biết mình đang setup đúng thứ.*
 
 - ✅ Trang `/setup` có logo OPA, tiêu đề "Khởi tạo tài khoản Admin đầu tiên"
@@ -464,7 +464,7 @@ Mỗi User Story có ID theo format `{PREFIX}-NNN` (vd: `AUTH-001`, `POST-002`).
 
 ---
 
-#### Feature A2: USR-001 ⏳ Xem danh sách User
+#### Feature A2: USR-001 ⚠️ Xem danh sách User
 
 **Story:** Là admin, tôi muốn xem toàn bộ danh sách user đã đăng ký, để biết ai đang dùng hệ thống và quản lý khi cần.
 
@@ -477,7 +477,7 @@ Mỗi User Story có ID theo format `{PREFIX}-NNN` (vd: `AUTH-001`, `POST-002`).
 - ❌ Chưa cần export danh sách user ra Excel
 - ❌ Chưa cần xóa vĩnh viễn tài khoản (chỉ khoá)
 
-**Story phụ — USR-002 ⏳ Reset password cho user:**
+**Story phụ — USR-002 ⚠️ Reset password cho user:**
 *Là admin, tôi muốn reset password giúp user bị quên mật khẩu và không vào được email, để hỗ trợ nhanh.*
 
 - ✅ Trong detail user → button "Gửi link reset password" → OPA gửi email reset tới địa chỉ user
@@ -497,7 +497,7 @@ Mỗi User Story có ID theo format `{PREFIX}-NNN` (vd: `AUTH-001`, `POST-002`).
 
 ---
 
-#### Feature A3: DASH-001 ⏳ Dashboard Admin
+#### Feature A3: DASH-001 ⚠️ Dashboard Admin
 
 **Story:** Là admin, tôi muốn xem tổng quan hoạt động của hệ thống, để biết hệ thống đang chạy khoẻ không và có bao nhiêu người đang dùng.
 
@@ -940,3 +940,4 @@ sequenceDiagram
 | 2026-04-17 | v4.1 — Làm rõ Feature 2: tách riêng 2 story drag-drop (từ sidebar phải → lịch / giữa các ngày trên lịch), thêm drag ngược để huỷ lịch. Explicit-hoá story popup edit: overlay trên trang Lịch, URL không đổi, scroll/filter/tuần đang xem được giữ nguyên khi đóng popup | Bình |
 | 2026-04-24 | v4.2 — Feature 5: thêm Story phụ "Kết nối Telegram 1 chạm" (deeplink, auto chat_id, tin xác nhận từ bot); thêm Story phụ "Chọn loại thông báo sau khi kết nối" (bot hỏi ngay sau Start với 3 nút: nhận ngay / hàng ngày / hàng tuần); bổ sung toggle "Báo cáo hàng tuần" vào Settings | Bình |
 | 2026-04-24 | v4.3 — **Tracking**: thêm ID `{PREFIX}-NNN` cho từng Story (AUTH/CHN/POST/SCH/TRK/SUP/USR/DASH/TEL/RPT/SET) + trạng thái ⏳ Todo mặc định. Thêm bảng quy ước trạng thái tại ①.1. Sắp xếp lại dependency: trong MUST đặt Feature 4 (Quản lý Kênh) **trước** Feature 1 (Soạn bài); trong SHOULD đặt Feature 7 (Settings) **trước** Feature 5 (Telegram) vì Settings là trang nền của Telegram config. Nội dung các Story giữ nguyên 100%, chỉ đổi thứ tự + thêm ID | Bình |
+| 2026-05-08 | v4.4 — **Status sync**: cập nhật trạng thái sau Sprint 1. Done ✅: AUTH-001, AUTH-002, CHN-001, CHN-002, CHN-006, POST-001, POST-002, TRK-005, SUP-001, SUP-002. Partial ⚠️: AUTH-003 (API done / Settings UI chưa), AUTH-004 (3-step guide có nhưng thiếu progress indicator + skip), CHN-003 (banner dashboard có, deep link chưa đúng channel), POST-003 (mini preview có, chưa đủ per-channel + char limit), POST-004 (API done, UI chưa có), POST-005 (empty state có, thiếu tooltip khi kênh expired), SCH-002 (API done, UI chưa có trong composer), TRK-001 (list + filter status/platform/search done, thiếu filter by channel + URL params), TRK-003 (API done, UI cần post detail page), TRK-004 (filter status/platform done, thiếu channel multi-select + URL params), USR-001/USR-002 (API done, UI skeleton), DASH-001 (2 stat cơ bản, thiếu breakdown nền tảng + bảng lỗi). Còn lại giữ ⏳ Todo | Bình |

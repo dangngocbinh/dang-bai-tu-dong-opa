@@ -39,5 +39,6 @@ export async function getChatInfo(
 }
 
 export function buildDeeplink(token: string): string {
-  return `https://t.me/${process.env.TELEGRAM_BOT_USERNAME}?start=${token}`;
+  const username = (process.env.TELEGRAM_BOT_USERNAME ?? "").replace(/^@/, "");
+  return `https://t.me/${username}?start=${token}`;
 }

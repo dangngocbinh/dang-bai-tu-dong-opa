@@ -36,8 +36,14 @@ export default auth((req) => {
     return NextResponse.next();
   }
 
-  // Not authenticated → redirect to login with callbackUrl
+  // Not authenticated → 401 for API routes, redirect for pages
   if (!req.auth) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json(
+        { data: null, error: { code: "UNAUTHORIZED", message: "Chưa đăng nhập" } },
+        { status: 401 }
+      );
+    }
     const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);

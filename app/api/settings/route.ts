@@ -29,7 +29,7 @@ const updateSchema = z.object({
     notify_fail: z.boolean().optional(),
     daily_report: z.boolean().optional(),
     weekly_report: z.boolean().optional(),
-    report_time: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+    report_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).optional(),
   }).optional(),
 });
 

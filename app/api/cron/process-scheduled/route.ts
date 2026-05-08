@@ -5,6 +5,7 @@ import { ok } from "@/lib/response";
 import { sendSSE } from "@/lib/sse";
 import { syncPostStatus } from "@/lib/post-status";
 import { decrypt } from "@/lib/crypto";
+import { sendMessage } from "@/lib/telegram";
 
 export async function POST(req: NextRequest) {
   // Verify cron secret
@@ -155,7 +156,73 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Daily report: send to users whose report_time matches current minute in their timezone
+  await sendDailyReports();
+
   return ok({ processed });
+}
+
+async function sendDailyReports() {
+  const now = new Date();
+  const currentHHMM = now.toISOString().slice(11, 16); // "HH:MM" in UTC
+
+  const users = await prisma.user.findMany({
+    where: {
+      telegramChatId: { not: null },
+      status: "active",
+    },
+    select: {
+      id: true,
+      telegramChatId: true,
+      telegramSettings: true,
+      timezone: true,
+    },
+  });
+
+  for (const user of users) {
+    const settings = user.telegramSettings as Record<string, unknown>;
+    if (!settings.daily_report) continue;
+
+    const reportTime = (settings.report_time as string) ?? "22:00";
+
+    // Convert report_time in user's timezone to UTC for comparison
+    const [rh, rm] = reportTime.split(":").map(Number);
+    const userNow = new Date(now.toLocaleString("en-US", { timeZone: user.timezone }));
+    const userHHMM = `${String(userNow.getHours()).padStart(2, "0")}:${String(userNow.getMinutes()).padStart(2, "0")}`;
+
+    if (userHHMM !== reportTime) continue;
+    void rh; void rm; void currentHHMM;
+
+    // Find today's post_channels for this user (in their timezone)
+    const todayStart = new Date(userNow);
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date(userNow);
+    todayEnd.setHours(23, 59, 59, 999);
+
+    const postChannels = await prisma.postChannel.findMany({
+      where: {
+        post: { userId: user.id },
+        createdAt: { gte: todayStart, lte: todayEnd },
+        status: { in: ["published", "failed"] },
+      },
+      select: { status: true },
+    });
+
+    // TEL-007: don't send if no posts processed today
+    if (postChannels.length === 0) continue;
+
+    const total = postChannels.length;
+    const success = postChannels.filter((pc) => pc.status === "published").length;
+    const failed = total - success;
+
+    const msg =
+      `📊 <b>Báo cáo hôm nay</b>\n\n` +
+      `📌 Tổng bài xử lý: <b>${total}</b>\n` +
+      `✅ Thành công: <b>${success}</b>\n` +
+      `❌ Lỗi: <b>${failed}</b>`;
+
+    await sendMessage(user.telegramChatId!, msg);
+  }
 }
 
 async function handleDirectApi(
