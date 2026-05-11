@@ -12,6 +12,13 @@ type Tab = "profile" | "security" | "notifications" | "channels" | "account";
 type TelegramStatus = "disconnected" | "connecting" | "expired" | "connected";
 type TestStatus = "idle" | "sending" | "sent" | "failed";
 
+interface ChannelSummary {
+  id: string;
+  name: string;
+  platform: string;
+  status: string;
+}
+
 interface UserSettings {
   id: string;
   email: string;
@@ -27,6 +34,12 @@ interface UserSettings {
   };
   createdAt: string;
   lastLoginAt: string | null;
+  stats: {
+    total_posts: number;
+    connected_channels: number;
+    storage_used_mb: number;
+  };
+  channels: ChannelSummary[];
 }
 
 const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
@@ -36,6 +49,21 @@ const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "channels", label: "Kênh", icon: Radio },
   { id: "account", label: "Tài khoản", icon: BarChart2 },
 ];
+
+const PLATFORM_LABEL: Record<string, string> = {
+  facebook: "Facebook",
+  instagram: "Instagram",
+  linkedin: "LinkedIn",
+  youtube: "YouTube",
+  threads: "Threads",
+  x: "X",
+};
+
+const CHANNEL_STATUS_BADGE: Record<string, { label: string; className: string }> = {
+  active: { label: "Hoạt động", className: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+  expired: { label: "Hết hạn", className: "bg-red-100 text-red-700 border-red-200" },
+  inactive: { label: "Tắt", className: "bg-gray-100 text-gray-600 border-gray-200" },
+};
 
 const TIMEZONES = [
   { value: "Asia/Ho_Chi_Minh", label: "Asia/Ho_Chi_Minh (GMT+7)" },
@@ -314,6 +342,7 @@ export default function SettingsPage() {
                 <p className="text-xs text-gray-400 mt-1">
                   Email không thể thay đổi.
                   {userData?.createdAt && ` Đăng ký từ ${new Date(userData.createdAt).toLocaleDateString("vi-VN")}.`}
+                  {userData?.lastLoginAt && ` Đăng nhập gần nhất ${new Date(userData.lastLoginAt).toLocaleString("vi-VN")}.`}
                 </p>
               </div>
 
@@ -740,15 +769,62 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {/* ── Channels (link to channels page) ── */}
+          {/* ── Channels (status preview + quick link) ── */}
           {tab === "channels" && (
             <div className="bg-white rounded-2xl border border-gray-100 p-6">
-              <h2 className="font-semibold text-gray-900 mb-4">Kênh đã kết nối</h2>
-              <p className="text-sm text-gray-500 mb-4">Quản lý các kênh mạng xã hội của bạn.</p>
-              <a href="/channels" className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium cursor-pointer transition-colors">
-                <Radio size={14} />
-                Quản lý kênh
-              </a>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="font-semibold text-gray-900">Kênh đã kết nối</h2>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {userData?.channels.length ?? 0} kênh
+                  </p>
+                </div>
+                <a
+                  href="/channels"
+                  className="inline-flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-700 cursor-pointer transition-colors"
+                >
+                  Quản lý kênh
+                  <ExternalLink size={13} />
+                </a>
+              </div>
+
+              {!userData?.channels.length ? (
+                <div className="py-8 text-center">
+                  <div className="w-12 h-12 mx-auto rounded-xl bg-gray-50 flex items-center justify-center mb-3">
+                    <Radio size={20} className="text-gray-400" />
+                  </div>
+                  <p className="text-sm text-gray-600 mb-1">Chưa kết nối kênh nào</p>
+                  <p className="text-xs text-gray-400 mb-4">Thêm kênh mạng xã hội đầu tiên để bắt đầu đăng bài.</p>
+                  <a
+                    href="/channels/new"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium cursor-pointer transition-colors"
+                  >
+                    <Radio size={14} />
+                    Kết nối kênh đầu tiên
+                  </a>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-50">
+                  {userData.channels.map((ch) => {
+                    const badge = CHANNEL_STATUS_BADGE[ch.status] ?? CHANNEL_STATUS_BADGE.inactive;
+                    return (
+                      <div key={ch.id} className="flex items-center justify-between py-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-gray-800 truncate">{ch.name}</p>
+                          <p className="text-xs text-gray-400">
+                            {PLATFORM_LABEL[ch.platform] ?? ch.platform}
+                          </p>
+                        </div>
+                        <span
+                          className={`text-xs px-2.5 py-0.5 rounded-full border font-medium flex-shrink-0 ml-3 ${badge.className}`}
+                        >
+                          {badge.label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
@@ -756,6 +832,25 @@ export default function SettingsPage() {
           {tab === "account" && (
             <div className="bg-white rounded-2xl border border-gray-100 p-6">
               <h2 className="font-semibold text-gray-900 mb-5">Thống kê tài khoản</h2>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-slate-50 rounded-xl p-4 text-center">
+                  <div className="text-2xl font-bold text-gray-900">{userData?.stats.total_posts ?? 0}</div>
+                  <div className="text-xs text-gray-500 mt-1">Tổng bài đăng</div>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-4 text-center">
+                  <div className="text-2xl font-bold text-gray-900">{userData?.stats.connected_channels ?? 0}</div>
+                  <div className="text-xs text-gray-500 mt-1">Kênh kết nối</div>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-4 text-center">
+                  <div className="text-2xl font-bold text-gray-900">
+                    {userData?.stats.storage_used_mb ?? 0}
+                    <span className="text-sm font-medium text-gray-500 ml-1">MB</span>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">Dung lượng đã dùng</div>
+                </div>
+              </div>
+
               <div className="mt-6 pt-5 border-t border-gray-100">
                 <p className="text-xs text-gray-400 mb-1">
                   {userData?.createdAt && `Tài khoản tạo ngày ${new Date(userData.createdAt).toLocaleDateString("vi-VN")}`}

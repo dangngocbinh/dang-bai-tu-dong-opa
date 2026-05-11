@@ -8,17 +8,45 @@ export async function GET() {
   const session = await auth();
   if (!session) return err("UNAUTHORIZED", "Chưa đăng nhập", 401);
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: {
-      id: true, email: true, displayName: true, timezone: true,
-      telegramChatId: true, telegramSettings: true,
-      lastLoginAt: true, createdAt: true,
-    },
-  });
+  const userId = session.user.id;
+
+  const [user, totalPosts, connectedChannels, channels, postsWithMedia] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true, email: true, displayName: true, timezone: true,
+        telegramChatId: true, telegramSettings: true,
+        lastLoginAt: true, createdAt: true,
+      },
+    }),
+    prisma.post.count({ where: { userId } }),
+    prisma.channel.count({ where: { userId, status: "active" } }),
+    prisma.channel.findMany({
+      where: { userId },
+      select: { id: true, name: true, platform: true, status: true },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.post.findMany({ where: { userId }, select: { mediaUrls: true } }),
+  ]);
+
   if (!user) return err("NOT_FOUND", "User không tồn tại", 404);
 
-  return ok(user);
+  const totalBytes = postsWithMedia.reduce((sum, p) => {
+    const media = p.mediaUrls as Array<{ size?: number }> | null;
+    if (!Array.isArray(media)) return sum;
+    return sum + media.reduce((s, m) => s + (m?.size ?? 0), 0);
+  }, 0);
+  const storageUsedMb = Math.round((totalBytes / (1024 * 1024)) * 10) / 10;
+
+  return ok({
+    ...user,
+    stats: {
+      total_posts: totalPosts,
+      connected_channels: connectedChannels,
+      storage_used_mb: storageUsedMb,
+    },
+    channels,
+  });
 }
 
 const updateSchema = z.object({

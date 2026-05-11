@@ -528,7 +528,7 @@ Mỗi User Story có ID theo format `{PREFIX}-NNN` (vd: `AUTH-001`, `POST-002`).
 
 ---
 
-#### Feature 7: SET-001 ⏳ Settings & Profile
+#### Feature 7: SET-001 ✅ Settings & Profile
 
 > **Lý do đặt trước Feature 5:** Settings là trang nền (Notifications / Security / Channels) mà Feature 5 (Telegram config) và các feature khác đều tham chiếu tới.
 
@@ -557,7 +557,7 @@ Mỗi User Story có ID theo format `{PREFIX}-NNN` (vd: `AUTH-001`, `POST-002`).
 - ✅ Xem thống kê cá nhân: tổng bài đăng, tổng kênh đã kết nối, dung lượng file đã dùng
 - ❌ Chưa cần xóa tài khoản (GDPR) — giai đoạn sau
 
-**Empty state — SET-002 ⏳ User mới vào settings lần đầu:**
+**Empty state — SET-002 ✅ User mới vào settings lần đầu:**
 - ✅ Hiện hint "Hãy cập nhật tên hiển thị + timezone để OPA phục vụ bạn tốt hơn"
 - ✅ Highlight các ô chưa điền bằng badge "Nên điền"
 
