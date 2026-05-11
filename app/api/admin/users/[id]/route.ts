@@ -21,6 +21,14 @@ export async function GET(
       status: true, timezone: true, telegramChatId: true,
       lastLoginAt: true, createdAt: true,
       _count: { select: { posts: true, channels: true } },
+      channels: {
+        select: {
+          id: true, name: true, platform: true, status: true,
+          connectionType: true, lastTestedAt: true, createdAt: true,
+          _count: { select: { postChannels: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
   if (!user) return err("NOT_FOUND", "User không tồn tại", 404);
