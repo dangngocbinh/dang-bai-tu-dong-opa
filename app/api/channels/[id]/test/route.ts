@@ -21,21 +21,53 @@ export async function POST(
   let success = false;
   let errorMsg: string | undefined;
 
+  let webhookResponse: unknown;
+
   try {
     if (channel.connectionType === "webhook" && channel.webhookUrl) {
-      // Send a test payload to the webhook
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 30000);
+
+      const testPayload = {
+        post_id: `TEST_${channel.id}`,
+        title: "Test kết nối OPA",
+        content: "Đây là test kết nối từ OPA. Bỏ qua tin nhắn này.",
+        imageUrls: [],
+        firstPhotoUrl: "",
+        videoUrl: "",
+        link: "",
+        post_type: "Text",
+        first_comment: "",
+        page_id: channel.id,
+        channel_title: channel.name,
+        channel_type: channel.platform,
+        action: "post",
+        test: true,
+      };
 
       const res = await fetch(channel.webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ test: true, channelName: channel.name }),
+        body: JSON.stringify(testPayload),
         signal: controller.signal,
       }).finally(() => clearTimeout(timeout));
 
       success = res.ok;
-      if (!success) errorMsg = `HTTP ${res.status}`;
+      if (!success) {
+        errorMsg = `HTTP ${res.status}`;
+      }
+
+      // Parse Make.com response body
+      try {
+        const text = await res.text();
+        try {
+          webhookResponse = JSON.parse(text);
+        } catch {
+          webhookResponse = text;
+        }
+      } catch {
+        webhookResponse = null;
+      }
     } else if (
       channel.connectionType === "api" &&
       channel.credentials
@@ -75,9 +107,17 @@ export async function POST(
   });
 
   const latencyMs = Date.now() - start;
+
+  // Extract published URL from Make.com response if present
+  const responseObj = webhookResponse as Record<string, unknown> | null;
+  const publishedUrl =
+    responseObj?.url ?? responseObj?.published_url ?? responseObj?.post_url ?? responseObj?.link ?? null;
+
   return ok({
     success,
     latencyMs,
     message: success ? "Kết nối thành công" : (errorMsg ?? "Kết nối thất bại"),
+    webhookResponse,
+    ...(publishedUrl ? { publishedUrl } : {}),
   });
 }

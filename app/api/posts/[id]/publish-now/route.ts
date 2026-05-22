@@ -19,14 +19,19 @@ export async function POST(
     return err("INVALID_STATUS", "Bài đang được xử lý hoặc đã đăng", 400);
   }
 
-  // Schedule for immediate publishing (1 minute from now to enter the cron window)
   await prisma.post.update({
     where: { id: id },
     data: {
       status: "scheduled",
-      scheduledAt: new Date(Date.now() + 30 * 1000), // 30 seconds
+      scheduledAt: new Date(), // ngay lập tức
     },
   });
+
+  // Kích hoạt cron ngay — không chờ Vercel scheduler
+  fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/cron/process-scheduled`, {
+    method: "POST",
+    headers: { "x-cron-secret": process.env.CRON_SECRET ?? "" },
+  }).catch(() => {});
 
   return ok({ message: "Bài đã được đưa vào hàng chờ đăng ngay" });
 }

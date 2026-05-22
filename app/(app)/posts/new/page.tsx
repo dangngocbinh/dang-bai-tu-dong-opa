@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import {
-  Upload, Save, AlertTriangle, X, Check, Search, ImageIcon, Clock,
-  Loader2, Trash2,
+  Upload, Save, AlertTriangle, X, Check, Search, ImageIcon,
+  Loader2, Trash2, Send,
 } from "lucide-react";
 import PlatformIcon, { PLATFORMS } from "@/components/PlatformIcon";
 import { uploadFile, type MediaItem } from "@/lib/upload-client";
@@ -42,6 +42,7 @@ export default function NewPostPage() {
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [publishing, setPublishing] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -200,6 +201,63 @@ export default function NewPostPage() {
       const json = await res.json();
       setSubmitError(json.error?.message ?? "Lưu thất bại");
       setSubmitting(false);
+    }
+  }
+
+  async function handlePublishNow() {
+    if (selectedIds.length === 0) {
+      setSubmitError("Chọn ít nhất 1 kênh để đăng");
+      return;
+    }
+    if (content.trim() === "" && media.length === 0) {
+      setSubmitError("Nhập nội dung hoặc thêm ảnh/video trước khi đăng");
+      return;
+    }
+    setPublishing(true);
+    setSubmitError("");
+
+    const body = { content, mediaUrls: media, channelIds: selectedIds };
+
+    // Save or update draft first
+    let id = postId;
+    try {
+      let res: Response;
+      if (id) {
+        res = await fetch(`/api/posts/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+      } else {
+        res = await fetch("/api/posts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (res.ok) {
+          const json = await res.json();
+          id = json.data.id;
+          setPostId(id);
+        }
+      }
+      if (!res.ok) throw new Error("Lưu bài thất bại");
+    } catch (e: unknown) {
+      setSubmitError(e instanceof Error ? e.message : "Lỗi lưu bài");
+      setPublishing(false);
+      return;
+    }
+
+    // Trigger publish-now
+    try {
+      const res = await fetch(`/api/posts/${id}/publish-now`, { method: "POST" });
+      if (!res.ok) {
+        const json = await res.json();
+        throw new Error(json.error?.message ?? "Đăng thất bại");
+      }
+      router.push("/posts?published=1");
+    } catch (e: unknown) {
+      setSubmitError(e instanceof Error ? e.message : "Đăng thất bại");
+      setPublishing(false);
     }
   }
 
@@ -490,14 +548,19 @@ export default function NewPostPage() {
             )}
           </div>
 
-          {/* Schedule mode — draft only for POST-001; schedule/now disabled until SCH-001 */}
+          {/* Schedule mode — lên lịch sẽ mở ở SCH-001 */}
           <div>
             <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">
               Thời gian đăng
             </span>
-            <div className="p-3 bg-gray-50 rounded-xl text-xs text-gray-500 flex items-center gap-2">
-              <Clock size={13} className="text-gray-400" />
-              Lên lịch đăng bài sẽ sớm ra mắt
+            <div className="space-y-1.5">
+              <button
+                disabled
+                className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs border border-gray-200 text-gray-400 cursor-not-allowed"
+              >
+                <span className="w-3 h-3 rounded-full border border-gray-300 flex-shrink-0" />
+                Lên lịch (sắp ra mắt)
+              </button>
             </div>
           </div>
 
@@ -530,21 +593,33 @@ export default function NewPostPage() {
         </div>
 
         {/* Submit */}
-        <div className="p-4 border-t border-gray-100">
+        <div className="p-4 border-t border-gray-100 space-y-2">
           {submitError && (
-            <p className="text-xs text-red-500 mb-2 flex items-center gap-1">
+            <p className="text-xs text-red-500 mb-1 flex items-center gap-1">
               <AlertTriangle size={11} /> {submitError}
             </p>
           )}
           <button
-            onClick={handleSubmitDraft}
-            disabled={submitting}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold bg-gray-800 hover:bg-gray-900 text-white transition-colors disabled:opacity-50 shadow-sm"
+            onClick={handlePublishNow}
+            disabled={publishing || submitting || selectedIds.length === 0}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors disabled:opacity-50 shadow-sm"
           >
-            {submitting ? (
+            {publishing ? (
               <Loader2 size={15} className="animate-spin" />
             ) : (
-              <Save size={15} />
+              <Send size={15} />
+            )}
+            {publishing ? "Đang đưa vào hàng chờ..." : "Đăng ngay"}
+          </button>
+          <button
+            onClick={handleSubmitDraft}
+            disabled={submitting || publishing}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50"
+          >
+            {submitting ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : (
+              <Save size={14} />
             )}
             {submitting ? "Đang lưu..." : "Lưu nháp"}
           </button>

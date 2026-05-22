@@ -28,16 +28,16 @@ export async function POST(req: NextRequest) {
 
   // Step 2: Claim pending post_channels ready to publish
   const pending = await prisma.$queryRaw<
-    Array<{ id: string; post_id: string; channel_id: string }>
+    Array<{ id: string; postId: string; channelId: string }>
   >`
-    SELECT pc.id, pc.post_id, pc.channel_id
-    FROM post_channels pc
-    JOIN posts p ON p.id = pc.post_id
-    JOIN channels c ON c.id = pc.channel_id
-    JOIN users u ON u.id = p.user_id
+    SELECT pc.id, pc."postId", pc."channelId"
+    FROM "PostChannel" pc
+    JOIN "Post" p ON p.id = pc."postId"
+    JOIN "Channel" c ON c.id = pc."channelId"
+    JOIN "User" u ON u.id = p."userId"
     WHERE pc.status = 'pending'
-      AND pc.locked_at IS NULL
-      AND p.scheduled_at <= NOW()
+      AND pc."lockedAt" IS NULL
+      AND p."scheduledAt" <= NOW()
       AND p.status = 'scheduled'
       AND c.status = 'active'
       AND u.status = 'active'
@@ -71,12 +71,12 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      await syncPostStatus(row.post_id);
+      await syncPostStatus(row.postId);
 
       const postChannel = await prisma.postChannel.findUnique({
         where: { id: row.id },
         include: {
-          post: { select: { content: true, mediaUrls: true } },
+          post: { select: { id: true, content: true, mediaUrls: true } },
           channel: true,
         },
       });
@@ -88,39 +88,105 @@ export async function POST(req: NextRequest) {
       const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/posts/callback?token=${callbackToken}`;
 
       if (channel.connectionType === "webhook" && channel.webhookUrl) {
-        // Fire-and-forget: Make.com will call back asynchronously
-        fetch(channel.webhookUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            content: post.content,
-            mediaUrls: post.mediaUrls,
-            platform: channel.platform,
-            channelName: channel.name,
-            callbackUrl,
-          }),
-        }).catch(() => {
-          // Timeout/error will be handled by the 10-minute timeout check
-        });
+        const media = post.mediaUrls as Array<{ key: string; url: string; type: string; size: number; name: string }>;
+        const imageMedia = media.filter((m) => m.type?.startsWith("image"));
+        const videoMedia = media.filter((m) => m.type?.startsWith("video"));
 
-        await prisma.postChannel.update({
-          where: { id: row.id },
-          data: {
-            timeline: {
-              push: {
-                event: "webhook_sent",
-                at: new Date().toISOString(),
-                note: `Đã gọi Make.com webhook`,
-              },
-            } as never,
-          },
-        });
+        const imageUrls = imageMedia.map((m) => ({
+          type: "url",
+          caption: "",
+          url: m.url,
+          image_url: m.url,
+          media_type: "IMAGE",
+        }));
+
+        const postType = videoMedia.length > 0 ? "Video" : imageMedia.length > 0 ? "Image" : "Text";
+        const title = post.content.split("\n")[0].slice(0, 200);
+
+        // Await Make.com synchronously — lấy kết quả trực tiếp từ response
+        let webhookRes: Response | null = null;
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 60_000);
+          webhookRes = await fetch(channel.webhookUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            signal: controller.signal,
+            body: JSON.stringify({
+              post_id: post.id,
+              title,
+              content: post.content,
+              imageUrls,
+              firstPhotoUrl: imageMedia[0]?.url ?? "",
+              videoUrl: videoMedia[0]?.url ?? "",
+              link: "",
+              post_type: postType,
+              first_comment: "",
+              page_id: channel.id,
+              channel_title: channel.name,
+              channel_type: channel.platform,
+              action: "post",
+              callbackUrl,
+            }),
+          }).finally(() => clearTimeout(timeout));
+        } catch {
+          // timeout hoặc network error — để 10-min timeout xử lý
+        }
+
+        if (webhookRes && webhookRes.ok) {
+          // Parse response từ Make.com để lấy publishedUrl
+          let publishedUrl: string | undefined;
+          try {
+            const text = await webhookRes.text();
+            const json = text ? JSON.parse(text) : null;
+            publishedUrl =
+              json?.url ?? json?.published_url ?? json?.post_url ?? json?.link ?? undefined;
+          } catch {
+            // Make.com trả về non-JSON — OK, chỉ cần HTTP 200
+          }
+
+          await prisma.postChannel.update({
+            where: { id: row.id },
+            data: {
+              status: "published",
+              publishedAt: new Date(),
+              publishedUrl: publishedUrl ?? null,
+              callbackToken: null,
+              lockedAt: null,
+              timeline: {
+                push: {
+                  event: "published",
+                  at: new Date().toISOString(),
+                  note: publishedUrl
+                    ? `Make.com OK — ${publishedUrl}`
+                    : "Make.com OK (không có link)",
+                },
+              } as never,
+            },
+          });
+          await syncPostStatus(row.postId);
+        } else {
+          // HTTP error — ghi lại nhưng giữ processing, 10-min timeout sẽ fail
+          const statusCode = webhookRes?.status ?? "timeout";
+          await prisma.postChannel.update({
+            where: { id: row.id },
+            data: {
+              timeline: {
+                push: {
+                  event: "webhook_error",
+                  at: new Date().toISOString(),
+                  note: `Make.com trả HTTP ${statusCode}`,
+                },
+              } as never,
+            },
+          });
+        }
       } else if (
         channel.connectionType === "api" &&
         channel.credentials
       ) {
         // Direct API posting (Threads, X.com)
-        await handleDirectApi(row.id, row.post_id, postChannel, callbackToken);
+        await handleDirectApi(row.id, row.postId, postChannel, callbackToken);
       } else if (channel.connectionType === "oauth") {
         // YouTube OAuth — TODO: implement in Sprint 5
         await prisma.postChannel.update({
@@ -132,7 +198,7 @@ export async function POST(req: NextRequest) {
             callbackToken: null,
           },
         });
-        await syncPostStatus(row.post_id);
+        await syncPostStatus(row.postId);
       }
 
       processed++;
@@ -142,7 +208,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Notify affected users via SSE
-  const affectedPostIds = Array.from(new Set(pending.map((r) => r.post_id)));
+  const affectedPostIds = Array.from(new Set(pending.map((r) => r.postId)));
   for (const postId of affectedPostIds) {
     const post = await prisma.post.findUnique({
       where: { id: postId },

@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, Filter, FileText, Loader2 } from "lucide-react";
+import { Plus, Search, Filter, FileText, Loader2, CheckCircle2, X } from "lucide-react";
 import PlatformIcon, { PLATFORMS } from "@/components/PlatformIcon";
 
 type PostChannel = {
@@ -48,9 +49,20 @@ function formatDate(iso: string): string {
 }
 
 export default function PostsPage() {
+  const searchParams = useSearchParams();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [platformFilter, setPlatformFilter] = useState("all");
+  const [showPublishedBanner, setShowPublishedBanner] = useState(
+    searchParams.get("published") === "1"
+  );
+
+  useEffect(() => {
+    if (showPublishedBanner) {
+      const t = setTimeout(() => setShowPublishedBanner(false), 6000);
+      return () => clearTimeout(t);
+    }
+  }, [showPublishedBanner]);
 
   const params = new URLSearchParams();
   if (statusFilter !== "all") params.set("status", statusFilter);
@@ -78,6 +90,17 @@ export default function PostsPage() {
 
   return (
     <div className="p-8 max-w-6xl">
+      {showPublishedBanner && (
+        <div className="mb-5 flex items-center gap-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl px-4 py-3 text-sm">
+          <CheckCircle2 size={16} className="text-emerald-500 flex-shrink-0" />
+          <span className="flex-1">
+            Bài đã được đưa vào hàng chờ đăng ngay. Quá trình đăng sẽ bắt đầu trong vài giây.
+          </span>
+          <button onClick={() => setShowPublishedBanner(false)} className="text-emerald-400 hover:text-emerald-600">
+            <X size={14} />
+          </button>
+        </div>
+      )}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Bài đăng</h1>
