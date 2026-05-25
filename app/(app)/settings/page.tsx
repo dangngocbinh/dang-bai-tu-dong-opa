@@ -23,6 +23,7 @@ interface UserSettings {
   id: string;
   email: string;
   displayName: string | null;
+  bio: string | null;
   timezone: string;
   zaloPhone: string | null;
   telegramChatId: string | null;
@@ -120,6 +121,7 @@ export default function SettingsPage() {
 
   // Profile fields
   const [displayName, setDisplayName] = useState("");
+  const [bio, setBio] = useState("");
   const [timezone, setTimezone] = useState("Asia/Ho_Chi_Minh");
   const [zaloPhone, setZaloPhone] = useState("");
   const [zaloPhoneError, setZaloPhoneError] = useState("");
@@ -163,6 +165,7 @@ export default function SettingsPage() {
           const u: UserSettings = res.data;
           setUserData(u);
           setDisplayName(u.displayName ?? "");
+          setBio(u.bio ?? "");
           setTimezone(u.timezone);
           setZaloPhone(u.zaloPhone ?? "");
           if (u.telegramChatId) setTelegramStatus("connected");
@@ -242,12 +245,12 @@ export default function SettingsPage() {
     await fetch("/api/settings", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ displayName, timezone, zaloPhone: zaloPhone || null }),
+      body: JSON.stringify({ displayName, bio: bio || null, timezone, zaloPhone: zaloPhone || null }),
     });
     setProfileSaving(false);
     setProfileSaved(true);
     setTimeout(() => setProfileSaved(false), 2000);
-  }, [displayName, timezone, zaloPhone]);
+  }, [displayName, bio, timezone, zaloPhone]);
 
   const handleSaveNotifications = useCallback(async () => {
     setNotifSaving(true);
@@ -363,6 +366,19 @@ export default function SettingsPage() {
                   onChange={(e) => setDisplayName(e.target.value)}
                   className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Tiểu sử</label>
+                <textarea
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  maxLength={500}
+                  rows={3}
+                  placeholder="Giới thiệu ngắn về bạn..."
+                  className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 resize-none"
+                />
+                <p className="text-xs text-gray-400 mt-1 text-right">{bio.length}/500</p>
               </div>
 
               <div>

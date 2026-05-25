@@ -18,6 +18,7 @@ model User {
   telegramChatId   String?
   telegramSettings Json      @default("{\"notify_success\":true,\"notify_fail\":true,\"daily_report\":true,\"weekly_report\":true,\"report_time\":\"22:00\"}")
   zaloPhone        String?
+  bio              String?
   lastLoginAt      DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt

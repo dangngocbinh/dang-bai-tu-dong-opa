@@ -14,7 +14,7 @@ export async function GET() {
     prisma.user.findUnique({
       where: { id: userId },
       select: {
-        id: true, email: true, displayName: true, timezone: true,
+        id: true, email: true, displayName: true, bio: true, timezone: true,
         telegramChatId: true, telegramSettings: true, zaloPhone: true,
         lastLoginAt: true, createdAt: true,
       },
@@ -51,6 +51,7 @@ export async function GET() {
 
 const updateSchema = z.object({
   displayName: z.string().max(100).optional(),
+  bio: z.string().max(500).optional().nullable(),
   timezone: z.string().optional(),
   zaloPhone: z.string().regex(/^(0|\+84)[0-9]{8,10}$/).optional().nullable(),
   telegramSettings: z.object({
@@ -72,7 +73,7 @@ export async function PATCH(req: NextRequest) {
     return err("VALIDATION_ERROR", parsed.error.errors[0].message, 400);
   }
 
-  const { displayName, timezone, zaloPhone, telegramSettings } = parsed.data;
+  const { displayName, bio, timezone, zaloPhone, telegramSettings } = parsed.data;
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
@@ -84,6 +85,7 @@ export async function PATCH(req: NextRequest) {
     where: { id: session.user.id },
     data: {
       ...(displayName !== undefined && { displayName }),
+      ...(bio !== undefined && { bio }),
       ...(timezone !== undefined && { timezone }),
       ...(zaloPhone !== undefined && { zaloPhone }),
       ...(telegramSettings && {
@@ -94,7 +96,7 @@ export async function PATCH(req: NextRequest) {
       }),
     },
     select: {
-      id: true, email: true, displayName: true, timezone: true,
+      id: true, email: true, displayName: true, bio: true, timezone: true,
       telegramChatId: true, telegramSettings: true, zaloPhone: true,
     },
   });
