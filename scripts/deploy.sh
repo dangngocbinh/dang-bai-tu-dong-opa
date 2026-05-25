@@ -40,6 +40,9 @@ $SSH "cd $APP_DIR && npm install --legacy-peer-deps 2>&1 | tail -3"
 echo "▶ Run DB migrations..."
 $SSH "cd $APP_DIR && npx prisma migrate deploy 2>&1 | tail -5"
 
+echo "▶ Generate Prisma Client..."
+$SSH "cd $APP_DIR && npx prisma generate 2>&1 | tail -3"
+
 echo "▶ Build..."
 $SSH "cd $APP_DIR && npm run build 2>&1 | tail -8"
 
