@@ -21,7 +21,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 APP_DIR="/home/$SITE_USER/htdocs/$DOMAIN"
-APP_NAME="$SITE_USER"
+APP_NAME="tu-dang-bai"
 SSH="ssh -o StrictHostKeyChecking=no $VPS_USER@$VPS_HOST"
 
 echo ""
