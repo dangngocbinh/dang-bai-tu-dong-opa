@@ -1,11 +1,13 @@
 import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 
 export default async function DashboardPage() {
   const session = await auth();
-  const userId = session!.user.id;
+  if (!session?.user?.id) redirect("/login");
+  const userId = session.user.id;
 
   const [postStats, channelCount, expiredChannels] = await Promise.all([
     prisma.post.groupBy({
