@@ -37,6 +37,7 @@ export default function NewChannelPage() {
   const [selectedPlatform, setSelectedPlatform] = useState("");
   const [connType, setConnType] = useState("");
   const [webhookUrl, setWebhookUrl] = useState("");
+  const [platformId, setPlatformId] = useState("");
   const [apiKey, setApiKey] = useState("");
   const [accessToken, setAccessToken] = useState("");
   const [channelName, setChannelName] = useState("");
@@ -74,6 +75,7 @@ export default function NewChannelPage() {
       connectionType: connType,
     };
     if (connType === "webhook" && webhookUrl) body.webhookUrl = webhookUrl;
+    if (platformId.trim()) body.platformId = platformId.trim();
     const creds = buildCredentials();
     if (creds) body.credentials = creds;
 
@@ -230,17 +232,37 @@ export default function NewChannelPage() {
               </p>
 
               {connType === "webhook" && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Webhook URL
-                  </label>
-                  <input
-                    type="url"
-                    value={webhookUrl}
-                    onChange={(e) => setWebhookUrl(e.target.value)}
-                    placeholder="https://hook.make.com/..."
-                    className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-                  />
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Webhook URL
+                    </label>
+                    <input
+                      type="url"
+                      value={webhookUrl}
+                      onChange={(e) => setWebhookUrl(e.target.value)}
+                      placeholder="https://hook.make.com/..."
+                      className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                    />
+                  </div>
+                  {(selectedPlatform === "facebook" || selectedPlatform === "instagram") && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        {selectedPlatform === "facebook" ? "Facebook Page ID" : "Instagram Profile ID"}
+                        <span className="ml-1 text-gray-400 font-normal">(tuỳ chọn)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={platformId}
+                        onChange={(e) => setPlatformId(e.target.value)}
+                        placeholder={selectedPlatform === "facebook" ? "vd: 100069604502314" : "vd: 17841400008460056"}
+                        className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                      />
+                      <p className="text-xs text-gray-400 mt-1">
+                        Dùng để tạo link bài đăng đúng. Tìm trong URL trang của bạn trên {selectedPlatform === "facebook" ? "Facebook" : "Instagram"}.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
               {connType === "oauth" && (

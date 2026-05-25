@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
               link: "",
               post_type: postType,
               first_comment: "",
-              page_id: channel.id,
+              page_id: channel.platformId ?? channel.id,
               channel_title: channel.name,
               channel_type: channel.platform,
               action: "post",

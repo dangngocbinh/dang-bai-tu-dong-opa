@@ -51,6 +51,7 @@ model Channel {
   name           String
   platform       String    // 'facebook'|'instagram'|'linkedin'|'youtube'|'threads'|'x'
   connectionType String    // 'webhook'|'api'|'oauth'
+  platformId     String?   // Facebook Page ID, Instagram profile ID, v.v.
   webhookUrl     String?
   credentials    Json?     // AES-256-GCM encrypted at app layer
   status         String    @default("active") // 'active'|'expired'|'inactive'

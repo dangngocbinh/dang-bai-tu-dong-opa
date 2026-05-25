@@ -9,6 +9,7 @@ const createSchema = z.object({
   name: z.string().min(1).max(100),
   platform: z.enum(["facebook", "instagram", "linkedin", "youtube", "threads", "x"]),
   connectionType: z.enum(["webhook", "api", "oauth"]),
+  platformId: z.string().max(100).optional(),
   webhookUrl: z.string().url().optional(),
   credentials: z.record(z.string()).optional(),
 });
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest) {
     return err("VALIDATION_ERROR", parsed.error.errors[0].message, 400);
   }
 
-  const { name, platform, connectionType, webhookUrl, credentials } = parsed.data;
+  const { name, platform, connectionType, platformId, webhookUrl, credentials } = parsed.data;
 
   // Check unique name per user
   const existing = await prisma.channel.findFirst({
@@ -72,6 +73,7 @@ export async function POST(req: NextRequest) {
       name,
       platform,
       connectionType,
+      platformId,
       webhookUrl,
       credentials: encryptedCreds ? ({ encrypted: encryptedCreds } as Record<string, string>) : undefined,
     },

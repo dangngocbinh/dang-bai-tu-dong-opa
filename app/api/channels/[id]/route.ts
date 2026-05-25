@@ -20,6 +20,7 @@ export async function GET(
       name: true,
       platform: true,
       connectionType: true,
+      platformId: true,
       webhookUrl: true,
       status: true,
       lastTestedAt: true,
@@ -48,6 +49,7 @@ export async function PATCH(
 
   const schema = z.object({
     name: z.string().min(1).max(100).optional(),
+    platformId: z.string().max(100).optional().nullable(),
     webhookUrl: z.string().url().optional(),
     credentials: z.record(z.string()).optional(),
     status: z.enum(["active", "inactive"]).optional(),
@@ -59,7 +61,7 @@ export async function PATCH(
     return err("VALIDATION_ERROR", parsed.error.errors[0].message, 400);
   }
 
-  const { name, webhookUrl, credentials, status } = parsed.data;
+  const { name, platformId, webhookUrl, credentials, status } = parsed.data;
 
   if (name && name !== channel.name) {
     const existing = await prisma.channel.findFirst({
@@ -76,6 +78,7 @@ export async function PATCH(
     where: { id: id },
     data: {
       ...(name && { name }),
+      ...(platformId !== undefined && { platformId }),
       ...(webhookUrl !== undefined && { webhookUrl }),
       ...(encryptedCreds && { credentials: encryptedCreds }),
       ...(status && { status }),
