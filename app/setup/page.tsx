@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import SetupForm from "./SetupForm";
 
+export const dynamic = "force-dynamic";
+
 export default async function SetupPage() {
   // If users already exist, setup is done — redirect to login
   const userCount = await prisma.user.count();

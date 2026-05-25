@@ -1,0 +1,83 @@
+services:
+  app:
+    image: dangngocbinh/tu-dang-bai:latest
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/app_db
+      REDIS_URL: redis://redis:6379
+      QDRANT_URL: http://qdrant:6333
+      AUTH_SECRET: "CHANGE_ME_strong_random_string_32chars"
+      NEXTAUTH_URL: "http://localhost:3000"
+      NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+      ENCRYPTION_KEY: "CHANGE_ME_64_hex_chars_encryption_key_here_replace_me_now_ok"
+      CRON_SECRET: "CHANGE_ME_cron_secret"
+      # SMTP (optional)
+      SMTP_HOST: ""
+      SMTP_PORT: "465"
+      SMTP_USER: ""
+      SMTP_PASS: ""
+      SMTP_FROM: "App <noreply@example.com>"
+      # Telegram (optional)
+      TELEGRAM_BOT_TOKEN: ""
+      TELEGRAM_BOT_USERNAME: ""
+      # S3 Storage (optional)
+      AWS_ACCESS_KEY_ID: ""
+      AWS_SECRET_ACCESS_KEY: ""
+      AWS_REGION: ""
+      AWS_S3_BUCKET: ""
+      AWS_S3_ENDPOINT: ""
+      AWS_S3_PUBLIC_URL: ""
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: app_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --save 60 1 --loglevel warning
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  qdrant_data:
