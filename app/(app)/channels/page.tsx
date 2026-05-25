@@ -159,7 +159,7 @@ export default function ChannelsPage() {
       <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-6">
         <p className="text-sm text-indigo-800">
           <strong>Kênh</strong> = 1 tài khoản social cụ thể, có tên riêng bạn đặt. Bạn có thể tạo
-          nhiều Kênh cùng nền tảng — vd: <em>"Shop Cưng"</em> và <em>"Giải Trí Thể Thao"</em> đều
+          nhiều Kênh cùng nền tảng — vd: <em>&quot;Shop Cưng&quot;</em> và <em>&quot;Giải Trí Thể Thao&quot;</em> đều
           là Kênh Facebook riêng biệt.
         </p>
       </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
@@ -48,7 +49,7 @@ function formatDate(iso: string): string {
   });
 }
 
-export default function PostsPage() {
+function PostsContent() {
   const searchParams = useSearchParams();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -234,5 +235,13 @@ export default function PostsPage() {
         </>
       )}
     </div>
+  );
+}
+
+export default function PostsPage() {
+  return (
+    <Suspense>
+      <PostsContent />
+    </Suspense>
   );
 }
