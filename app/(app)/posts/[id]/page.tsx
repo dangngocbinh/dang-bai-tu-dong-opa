@@ -97,7 +97,7 @@ function ChannelCard({ pc, postCreatedAt }: { pc: PostChannel; postCreatedAt: st
   const platform = pc.channel.platform;
   const timeline: TimelineEvent[] = [
     { event: "created", at: postCreatedAt, note: "Bài đăng được tạo" },
-    ...pc.timeline,
+    ...(Array.isArray(pc.timeline) ? pc.timeline : []),
   ];
 
   return (
