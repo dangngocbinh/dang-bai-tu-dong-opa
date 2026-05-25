@@ -15,7 +15,7 @@ export async function GET() {
       where: { id: userId },
       select: {
         id: true, email: true, displayName: true, timezone: true,
-        telegramChatId: true, telegramSettings: true,
+        telegramChatId: true, telegramSettings: true, zaloPhone: true,
         lastLoginAt: true, createdAt: true,
       },
     }),
@@ -52,6 +52,7 @@ export async function GET() {
 const updateSchema = z.object({
   displayName: z.string().max(100).optional(),
   timezone: z.string().optional(),
+  zaloPhone: z.string().regex(/^(0|\+84)[0-9]{8,10}$/).optional().nullable(),
   telegramSettings: z.object({
     notify_success: z.boolean().optional(),
     notify_fail: z.boolean().optional(),
@@ -71,7 +72,7 @@ export async function PATCH(req: NextRequest) {
     return err("VALIDATION_ERROR", parsed.error.errors[0].message, 400);
   }
 
-  const { displayName, timezone, telegramSettings } = parsed.data;
+  const { displayName, timezone, zaloPhone, telegramSettings } = parsed.data;
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
@@ -84,6 +85,7 @@ export async function PATCH(req: NextRequest) {
     data: {
       ...(displayName !== undefined && { displayName }),
       ...(timezone !== undefined && { timezone }),
+      ...(zaloPhone !== undefined && { zaloPhone }),
       ...(telegramSettings && {
         telegramSettings: {
           ...(user.telegramSettings as object),
@@ -93,7 +95,7 @@ export async function PATCH(req: NextRequest) {
     },
     select: {
       id: true, email: true, displayName: true, timezone: true,
-      telegramChatId: true, telegramSettings: true,
+      telegramChatId: true, telegramSettings: true, zaloPhone: true,
     },
   });
 

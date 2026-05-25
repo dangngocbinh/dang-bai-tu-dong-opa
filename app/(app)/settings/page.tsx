@@ -24,6 +24,7 @@ interface UserSettings {
   email: string;
   displayName: string | null;
   timezone: string;
+  zaloPhone: string | null;
   telegramChatId: string | null;
   telegramSettings: {
     notify_success: boolean;
@@ -120,6 +121,8 @@ export default function SettingsPage() {
   // Profile fields
   const [displayName, setDisplayName] = useState("");
   const [timezone, setTimezone] = useState("Asia/Ho_Chi_Minh");
+  const [zaloPhone, setZaloPhone] = useState("");
+  const [zaloPhoneError, setZaloPhoneError] = useState("");
   const [profileSaved, setProfileSaved] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
 
@@ -161,6 +164,7 @@ export default function SettingsPage() {
           setUserData(u);
           setDisplayName(u.displayName ?? "");
           setTimezone(u.timezone);
+          setZaloPhone(u.zaloPhone ?? "");
           if (u.telegramChatId) setTelegramStatus("connected");
           const s = u.telegramSettings;
           setNotifSuccess(s.notify_success ?? true);
@@ -229,16 +233,21 @@ export default function SettingsPage() {
   }, []);
 
   const handleSaveProfile = useCallback(async () => {
+    setZaloPhoneError("");
+    if (zaloPhone && !/^(0|\+84)[0-9]{8,10}$/.test(zaloPhone)) {
+      setZaloPhoneError("Số điện thoại không hợp lệ (VD: 0901234567)");
+      return;
+    }
     setProfileSaving(true);
     await fetch("/api/settings", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ displayName, timezone }),
+      body: JSON.stringify({ displayName, timezone, zaloPhone: zaloPhone || null }),
     });
     setProfileSaving(false);
     setProfileSaved(true);
     setTimeout(() => setProfileSaved(false), 2000);
-  }, [displayName, timezone]);
+  }, [displayName, timezone, zaloPhone]);
 
   const handleSaveNotifications = useCallback(async () => {
     setNotifSaving(true);
@@ -367,6 +376,29 @@ export default function SettingsPage() {
                     <option key={tz.value} value={tz.value}>{tz.label}</option>
                   ))}
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Số điện thoại Zalo
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-semibold text-blue-500 select-none">Z</span>
+                  <input
+                    type="tel"
+                    value={zaloPhone}
+                    onChange={(e) => { setZaloPhone(e.target.value); setZaloPhoneError(""); }}
+                    placeholder="0901234567"
+                    className="w-full border border-gray-200 rounded-lg pl-8 pr-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                  />
+                </div>
+                {zaloPhoneError && (
+                  <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                    <AlertCircle size={11} />
+                    {zaloPhoneError}
+                  </p>
+                )}
+                <p className="text-xs text-gray-400 mt-1">Dùng để gửi tin nhắn thông báo qua Zalo OA.</p>
               </div>
 
               <div>
