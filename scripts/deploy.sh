@@ -37,9 +37,8 @@ $SSH "cd $APP_DIR && git pull 2>&1 | tail -5"
 echo "▶ Install dependencies..."
 $SSH "cd $APP_DIR && npm install --legacy-peer-deps 2>&1 | tail -3"
 
-echo "▶ Migrate DB..."
-$SSH "cd $APP_DIR && npx prisma migrate deploy 2>&1 | tail -5" || \
-$SSH "cd $APP_DIR && npx prisma db push 2>&1 | tail -5"
+echo "▶ Sync DB schema..."
+$SSH "cd $APP_DIR && npx prisma db push --accept-data-loss 2>&1 | tail -5"
 
 echo "▶ Build..."
 $SSH "cd $APP_DIR && npm run build 2>&1 | tail -8"
